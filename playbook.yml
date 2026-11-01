@@ -1,0 +1,31 @@
+---
+- name: Установка и настройка Nginx
+  hosts: web
+  become: true
+
+  tasks:
+    - name: Обновить кэш apt
+      ansible.builtin.apt:
+        update_cache: true
+        cache_valid_time: 3600
+
+    - name: Установить Nginx
+      ansible.builtin.apt:
+        name: nginx
+        state: present
+
+    - name: Заменить дефолтную страницу на страницу с именем хоста
+      ansible.builtin.copy:
+        content: |
+          <h1>Hello from {{ ansible_fqdn }}</h1>
+          <p>IP: {{ ansible_default_ipv4.address }}</p>
+        dest: /var/www/html/index.nginx-debian.html
+        owner: root
+        group: root
+        mode: "0644"
+
+    - name: Запустить Nginx и добавить в автозагрузку
+      ansible.builtin.service:
+        name: nginx
+        state: started
+        enabled: true
